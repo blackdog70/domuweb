@@ -1,0 +1,38 @@
+{% extends "appbuilder/base.html" %}
+
+{% block content %}
+    {% for light in lights %}
+        <div id="{{ light.name }}">
+        {{ light.name }} - {{ light.room }} - {{ light.value }}
+        </div>
+    {% endfor %}
+    <button id="update">update</button>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
+    <script>
+        {% for light in lights %}
+            $("#{{ light.name }}").click(function() {
+                $.post( '/dashboard/set/',
+                        {data: "{{ light.name }}"},
+                        function (data, textStatus, jqXHR) {
+                            console.log(textStatus);
+                            console.log(data);
+                            console.log(jqXHR);
+                        }
+                );
+            });
+        {% endfor %}
+        $("#update").click(function() {
+            $.post( '/dashboard/get/',
+                    {data: ""},
+                    function (response, textStatus, jqXHR) {
+                        data = response.data;
+                        for (var i = 0; i < data.length; i++) {
+                            console.log(data[i]);
+                            $("#" + data[i].name).html(data[i].value)
+                        }
+                    }
+            )
+        });
+    </script>
+{% endblock %}

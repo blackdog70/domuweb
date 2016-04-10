@@ -62,8 +62,8 @@ class Device(object):
         # self._485.write(cipher)
         # self._485.write(IV + '\n')
         # self._485.write(str(self._crc.calculate(cipher)) + '\n')
-        data = str(self._crc.calculate(command[:-1])) + '|' + command
-        self._485.write(data)
+        data = str(self._crc.calculate(str(command[:-1]))) + '|' + command
+        self._485.write(str(data))
         return self._getACK()
 
     def __enter__(self):

@@ -3,7 +3,9 @@
 {% block content %}
     {% for light in lights %}
         <div id="{{ light.name }}">
-        {{ light.name }} - {{ light.room }} - {{ light.value }}
+            <p>Name: {{ light.name }}</p>
+            <p>Room: {{ light.room }}</p>
+            <p>Value:<a id="{{ light.name }}_value">{{ light.value }}</a></p>
         </div>
     {% endfor %}
     <button id="update">update</button>
@@ -29,7 +31,7 @@
                         data = response.data;
                         for (var i = 0; i < data.length; i++) {
                             console.log(data[i]);
-                            $("#" + data[i].name).html(data[i].value)
+                            $("#" + data[i].name + "_value").html(data[i].value)
                         }
                     }
             )

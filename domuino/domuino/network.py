@@ -29,8 +29,8 @@ class Network(Thread):
 
     #TODO: Need To Be Optimized
     def update(self):
-        for device in self._devices.itervalues():
-            try:
+        try:
+            for device in self._devices.itervalues():
                 network_lock.acquire()
                 err, res = device.get_outputs()
                 network_lock.release()
@@ -38,28 +38,31 @@ class Network(Thread):
                     outputs = res.split('|')[1]
                     if outputs != 'null':
                         self.outputs[device.code] = eval(outputs)
-            except Exception as e:
-                print e
+        except Exception as e:
+            print e
 
-    def get_output(self, device_code, output_pin):
+    def get_output(self, output_pin):
         network_lock.acquire()
-        outputs = self.outputs.get(device_code)
+        device, pin = output_pin.split('_')
+        outputs = self.outputs.get(int(device))
         network_lock.release()
         output = None
         if outputs:
-            output = outputs[output_pin]
+            output = outputs[int(pin)]
         return output
 
-    def pin_toggle(self, device_code, output_pin):
-        device = self._devices.get(int(device_code))
+    def pin_toggle(self, output_pin):
+        device, pin = output_pin.split('_')
+        device = self._devices.get(int(device))
         if device:
             network_lock.acquire()
-            device.toggle(output_pin)
+            device.toggle(int(pin))
             network_lock.release()
 
     def run(self):
         while True:
             self.update()
+            time.sleep(0.01)
 
 network_lock = Lock()
 network = Network()

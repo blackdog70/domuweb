@@ -3,8 +3,6 @@ from flask.ext.appbuilder.basemanager import BaseManager
 from .views import Dashboard
 from flask_babelpkg import lazy_gettext as _
 
-from domuino.network import network
-
 log = logging.getLogger(__name__)
 
 """
@@ -31,7 +29,6 @@ class LightsManager(BaseManager):
         self.appbuilder.add_view(Dashboard, "lights", category = "Lights")
 
     def pre_process(self):
-        # network.start()
         pass
 
     def post_process(self):

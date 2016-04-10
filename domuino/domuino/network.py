@@ -41,6 +41,15 @@ class Network(Thread):
             except Exception as e:
                 print e
 
+    def get_output(self, device_code, output_pin):
+        network_lock.acquire()
+        outputs = self.outputs.get(device_code)
+        network_lock.release()
+        output = None
+        if outputs:
+            output = outputs[output_pin]
+        return output
+
     def pin_toggle(self, device_code, output_pin):
         device = self._devices.get(int(device_code))
         if device:

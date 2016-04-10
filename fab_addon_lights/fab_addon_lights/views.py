@@ -14,13 +14,9 @@ class Dashboard(BaseView):
     def list_lights(self):
         lights = []
         for light in self.appbuilder.get_session.query(Pin).filter(Pin.type_id == 1).all():
-            value = None
-            outputs = network.outputs.get(light.device.code)
-            if outputs:
-                value = outputs[light.code]
             lights.append({"name": light.name,
                            "room": str(light.room),
-                           "value": value,
+                           "value": network.get_output(light.device.code, light.code),
                            "code": light.code})
         return lights
 
@@ -41,5 +37,4 @@ class Dashboard(BaseView):
         if pin_name:
             device_code, pin_id = pin_name.split('_')
             network.pin_toggle(device_code, pin_id)
-        print request.form.get('data')
-        return jsonify(result={})
+        return self.get()

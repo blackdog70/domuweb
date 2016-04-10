@@ -8,7 +8,6 @@
             <p>Value:<a id="{{ light.name }}_value">{{ light.value }}</a></p>
         </div>
     {% endfor %}
-    <button id="update">update</button>
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
     <script>
@@ -16,25 +15,15 @@
             $("#{{ light.name }}").click(function() {
                 $.post( '/dashboard/set/',
                         {data: "{{ light.name }}"},
-                        function (data, textStatus, jqXHR) {
-                            console.log(textStatus);
-                            console.log(data);
-                            console.log(jqXHR);
+                        function (response, textStatus, jqXHR) {
+                            data = response.data;
+                            for (var i = 0; i < data.length; i++) {
+                                console.log(data[i]);
+                                $("#" + data[i].name + "_value").html(data[i].value)
+                            }
                         }
                 );
             });
         {% endfor %}
-        $("#update").click(function() {
-            $.post( '/dashboard/get/',
-                    {data: ""},
-                    function (response, textStatus, jqXHR) {
-                        data = response.data;
-                        for (var i = 0; i < data.length; i++) {
-                            console.log(data[i]);
-                            $("#" + data[i].name + "_value").html(data[i].value)
-                        }
-                    }
-            )
-        });
     </script>
 {% endblock %}

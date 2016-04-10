@@ -1,13 +1,10 @@
-import sqlite3
-
 from flask import render_template
 from flask.ext.appbuilder.models.sqla.interface import SQLAInterface
 from flask.ext.appbuilder import ModelView
 from wtforms.validators import ValidationError
 
-from models import Room, Device, Pin, PinType, Scenery, SceneryType
+from models import Room, Device, InputPin, OutputPin, InputType, OutputType, Scenery, SceneryType
 from domuino import appbuilder, db
-from network import Network
 
 """
     Create your Views::
@@ -26,20 +23,37 @@ from network import Network
 """
     Application wide 404 error handler
 """
+
+
 @appbuilder.app.errorhandler(404)
 def page_not_found(e):
     return render_template('404.html', base_template=appbuilder.base_template, appbuilder=appbuilder), 404
 
 
-class PinTypeView(ModelView):
-    datamodel = SQLAInterface(PinType)
+class InputTypeView(ModelView):
+    datamodel = SQLAInterface(InputType)
 
     base_permissions = ['can_list', 'can_show']
-    show_columns = list_columns = ['name', 'code']
+    show_columns = list_columns = ['name']
 
 
-class PinView(ModelView):
-    datamodel = SQLAInterface(Pin)
+class OutputTypeView(ModelView):
+    datamodel = SQLAInterface(OutputType)
+
+    base_permissions = ['can_list', 'can_show']
+    show_columns = list_columns = ['name']
+
+
+class InputPinView(ModelView):
+    datamodel = SQLAInterface(InputPin)
+
+    base_permissions = ['can_list', 'can_show', 'can_edit']
+    list_columns = ['name', 'type', 'device', 'room', ]
+    add_columns = edit_columns = show_columns = list_columns
+
+
+class OutputPinView(ModelView):
+    datamodel = SQLAInterface(OutputPin)
 
     base_permissions = ['can_list', 'can_show', 'can_edit']
     list_columns = ['name', 'type', 'device', 'room', ]
@@ -49,7 +63,7 @@ class PinView(ModelView):
 class RoomView(ModelView):
     datamodel = SQLAInterface(Room)
 
-    related_views = [PinView]
+    related_views = [InputPinView, OutputPinView]
 
 
 class DeviceView(ModelView):
@@ -59,7 +73,7 @@ class DeviceView(ModelView):
     edit_columns = ['address']
     add_columns = show_columns = list_columns
 
-    related_views = [PinView]
+    related_views = [InputPinView, OutputPinView]
 
 
 class SceneryTypeView(ModelView):
@@ -115,34 +129,11 @@ class SceneryView(ModelView):
 
 db.create_all()
 
-def init_pin_type():
-    connection = appbuilder.get_session().connection()
-    try:
-        connection.execute('insert or replace into pin_type (id, name, code) values (0, "Button", 10)')
-        connection.execute('insert or replace into pin_type (id, name, code) values (1, "Light", 20)')
-        connection.execute('insert or replace into pin_type (id, name, code) values (2, "Socket", 30)')
-        connection.execute('insert or replace into pin_type (id, name, code) values (3, "Balcony", 40)')
-    except sqlite3.OperationalError:
-        print "DB is locked"
-
-def init_scenery_type():
-    connection = appbuilder.get_session().connection()
-    try:
-        connection.execute('insert or replace into scenery_type (id, name, code) values (0, "On", 10)')
-        connection.execute('insert or replace into scenery_type (id, name, code) values (1, "Off", 20)')
-        connection.execute('insert or replace into scenery_type (id, name, code) values (2, "On until ref", 30)')
-    except sqlite3.OperationalError:
-        print "DB is locked"
-
-try:
-    appbuilder.add_view(PinTypeView, "Pin types", icon = "fa-envelope", category = "Config")
-    appbuilder.add_view(PinView, "Pins", icon = "fa-envelope", category = "Config")
-    appbuilder.add_view(RoomView, "Rooms", icon = "fa-folder-open-o", category = "Config", category_icon = "fa-envelope")
-    appbuilder.add_view(DeviceView, "Devices", icon = "fa-envelope", category = "Config")
-    appbuilder.add_view(SceneryTypeView, "Scenery types", icon = "fa-envelope", category = "Config")
-    appbuilder.add_view(SceneryView, "Sceneries", icon = "fa-envelope", category = "Config")
-
-    # init_pin_type()
-    # init_scenery_type()
-finally:
-    pass
+appbuilder.add_view(InputTypeView, "Input Pin types", icon = "fa-envelope", category = "Config")
+appbuilder.add_view(OutputTypeView, "Output Pin types", icon = "fa-envelope", category = "Config")
+appbuilder.add_view(InputPinView, "Input Pins", icon = "fa-envelope", category = "Config")
+appbuilder.add_view(OutputPinView, "Output Pins", icon = "fa-envelope", category = "Config")
+appbuilder.add_view(RoomView, "Rooms", icon = "fa-folder-open-o", category = "Config", category_icon = "fa-envelope")
+appbuilder.add_view(DeviceView, "Devices", icon = "fa-envelope", category = "Config")
+appbuilder.add_view(SceneryTypeView, "Scenery types", icon = "fa-envelope", category = "Config")
+appbuilder.add_view(SceneryView, "Sceneries", icon = "fa-envelope", category = "Config")

@@ -3,7 +3,7 @@ import sqlite3
 from flask import request, jsonify
 from flask.ext.appbuilder import BaseView, expose, has_access
 
-from domuino.models import Pin, PinType
+from domuino.models import OutputPin
 from domuino.network import network
 
 
@@ -13,10 +13,11 @@ class Dashboard(BaseView):
 
     def list_lights(self):
         lights = []
-        for light in self.appbuilder.get_session.query(Pin).filter(Pin.type_id == 1).all():
+        for light in self.appbuilder.get_session.query(OutputPin).\
+                                                 filter(OutputPin.type_id == 1 and OutputPin.type_id == 5).all():
             lights.append({"name": light.name,
                            "room": str(light.room),
-                           "value": network.get_output(light.device.code, light.code),
+                           "value": network.get_output(light.code),
                            "code": light.code})
         return lights
 
@@ -35,6 +36,5 @@ class Dashboard(BaseView):
     def set(self):
         pin_name = request.form.get('data')
         if pin_name:
-            device_code, pin_id = pin_name.split('_')
-            network.pin_toggle(device_code, pin_id)
+            network.pin_toggle(pin_name)
         return self.get()

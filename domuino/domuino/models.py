@@ -15,24 +15,47 @@ AuditMixin will add automatic timestamp of created and modified by who
 """
 
 
-class PinType(Model):
+class InputType(Model):
     id = Column(Integer, primary_key=True)
     name = Column(String, unique=True)
-    code = Column(Integer, unique=True)
 
     def __repr__(self):
         return self.name
 
 
-class Pin(Model):
+class OutputType(Model):
+    id = Column(Integer, primary_key=True)
+    name = Column(String, unique=True)
+
+    def __repr__(self):
+        return self.name
+
+
+class InputPin(Model):
     __table_args__ = {'sqlite_autoincrement': True}
 
-#    id = Column(BigInteger().with_variant(sqlite.INTEGER(), "sqlite"), primary_key=True)
     id = Column(Integer, primary_key=True)
-    name = Column(String, unique=True, nullable=False)
-    code = Column(Integer, default=0, nullable=False)
-    type_id = Column(Integer, ForeignKey('pin_type.id'), nullable=False)
-    type = relationship('PinType', foreign_keys=[type_id])
+    code = Column(String, unique=True, nullable=False)
+    name = Column(String, nullable=False)
+    type_id = Column(Integer, ForeignKey('input_type.id'), nullable=False)
+    type = relationship('InputType', foreign_keys=[type_id])
+    device_id = Column(Integer, ForeignKey('device.id'), nullable=False)
+    device = relationship('Device', foreign_keys=[device_id]) #, back_populates='device')
+    room_id = Column(Integer, ForeignKey('room.id'), nullable=False)
+    room = relationship('Room', foreign_keys=[room_id]) #, back_populates='room')
+
+    def __repr__(self):
+        return self.name
+
+
+class OutputPin(Model):
+    __table_args__ = {'sqlite_autoincrement': True}
+
+    id = Column(Integer, primary_key=True)
+    code = Column(String, unique=True, nullable=False)
+    name = Column(String, nullable=False)
+    type_id = Column(Integer, ForeignKey('output_type.id'), nullable=False)
+    type = relationship('OutputType', foreign_keys=[type_id])
     device_id = Column(Integer, ForeignKey('device.id'), nullable=False)
     device = relationship('Device', foreign_keys=[device_id]) #, back_populates='device')
     room_id = Column(Integer, ForeignKey('room.id'), nullable=False)
@@ -46,7 +69,8 @@ class Device(Model):
     id = Column(Integer, primary_key=True)
     address = Column(String)
     code = Column(Integer, unique=True)
-    pins = relationship('Pin', cascade="all, delete-orphan")
+    input_pins = relationship('InputPin', cascade="all, delete-orphan")
+    output_pins = relationship('OutputPin', cascade="all, delete-orphan")
 
     def __repr__(self):
         return self.address
@@ -56,9 +80,11 @@ class Device(Model):
 @event.listens_for(Device, 'after_insert')
 def device_after_insert(mapper, connection, target):
     for pin_id in xrange(6):
-        pin_name = "%s_%s" % (target.code, pin_id)
-        connection.execute('insert into pin (name, code, type_id, device_id, room_id) '
-                           'values("%s", %s, 0, %s, 0)' % (pin_name, pin_id, target.id))
+        pin_code = "%s_%s" % (target.code, pin_id)
+        connection.execute('insert into input_pin (name, code, type_id, device_id, room_id) '
+                           'values("%s", "%s", 1, %s, 0)' % (pin_code, pin_code, target.id))
+        connection.execute('insert into output_pin (name, code, type_id, device_id, room_id) '
+                           'values("%s", "%s", 1, %s, 0)' % (pin_code, pin_code, target.id))
 
 
 class Room(Model):
@@ -72,7 +98,6 @@ class Room(Model):
 class SceneryType(Model):
     id = Column(Integer, primary_key=True)
     name = Column(String)
-    code = Column(Integer)
 
     def __repr__(self):
         return self.name
@@ -86,16 +111,16 @@ class Scenery(Model):
     start = Column(Float)
     end = Column(Float)
 
-    event_pin_id = Column(Integer, ForeignKey('pin.id'), nullable=False)
-    event_pin = relationship('Pin', foreign_keys=[event_pin_id])
+    event_pin_id = Column(Integer, ForeignKey('input_pin.id'), nullable=False)
+    event_pin = relationship('InputPin', foreign_keys=[event_pin_id])
     event_value = Column(Integer, nullable=False)
 
-    ref_pin_id = Column(Integer, ForeignKey('pin.id'), nullable=False)
-    ref_pin = relationship('Pin', foreign_keys=[ref_pin_id])
+    ref_pin_id = Column(Integer, ForeignKey('input_pin.id'), nullable=False)
+    ref_pin = relationship('InputPin', foreign_keys=[ref_pin_id])
     ref_value = Column(Integer, nullable=False)
 
-    output_pin_id = Column(Integer, ForeignKey('pin.id'), nullable=False)
-    output_pin = relationship('Pin', foreign_keys=[output_pin_id])
+    output_pin_id = Column(Integer, ForeignKey('output_pin.id'), nullable=False)
+    output_pin = relationship('OutputPin', foreign_keys=[output_pin_id])
     output_value = Column(Integer, nullable=False)
 
     def __repr__(self):

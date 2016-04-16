@@ -3,7 +3,7 @@ from flask.ext.appbuilder.models.sqla.interface import SQLAInterface
 from flask.ext.appbuilder import ModelView
 from wtforms.validators import ValidationError
 
-from models import Room, Device, InputPin, OutputPin, InputType, OutputType, Scenery, SceneryType
+from models import Room, Device, InputPin, OutputPin, InputType, OutputType, Scenery, Function
 from domuino import appbuilder, db
 
 """
@@ -76,11 +76,11 @@ class DeviceView(ModelView):
     related_views = [InputPinView, OutputPinView]
 
 
-class SceneryTypeView(ModelView):
-    datamodel = SQLAInterface(SceneryType)
+class FunctionView(ModelView):
+    datamodel = SQLAInterface(Function)
 
     base_permissions = ['can_list', 'can_show']
-    show_columns = list_columns = ['name', 'code']
+    show_columns = list_columns = ['name']
 
 
 class SceneryView(ModelView):
@@ -92,7 +92,7 @@ class SceneryView(ModelView):
             raise ValidationError('Value must be between 0 and 255')
 
     list_columns = [
-        'type', 'name', 'start', 'end', 'event_pin', 'event_value', 'ref_pin', 'ref_value', 'output_pin', 'output_value',
+        'name', 'function', 'start', 'end', 'event_pin', 'event_value', 'ref_pin', 'ref_value', 'output_pin', 'output_value',
     ]
     add_columns = edit_columns = show_columns = list_columns
     form_choices = {
@@ -135,5 +135,5 @@ appbuilder.add_view(InputPinView, "Input Pins", icon = "fa-envelope", category =
 appbuilder.add_view(OutputPinView, "Output Pins", icon = "fa-envelope", category = "Config")
 appbuilder.add_view(RoomView, "Rooms", icon = "fa-folder-open-o", category = "Config", category_icon = "fa-envelope")
 appbuilder.add_view(DeviceView, "Devices", icon = "fa-envelope", category = "Config")
-appbuilder.add_view(SceneryTypeView, "Scenery types", icon = "fa-envelope", category = "Config")
+appbuilder.add_view(FunctionView, "Functions", icon = "fa-envelope", category = "Config")
 appbuilder.add_view(SceneryView, "Sceneries", icon = "fa-envelope", category = "Config")

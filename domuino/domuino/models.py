@@ -95,7 +95,7 @@ class Room(Model):
         return self.name
 
 
-class SceneryType(Model):
+class Function(Model):
     id = Column(Integer, primary_key=True)
     name = Column(String)
 
@@ -106,22 +106,22 @@ class SceneryType(Model):
 class Scenery(Model):
     id = Column(Integer, primary_key=True)
     name = Column(String, index=True, nullable=False)
-    type_id = Column(Integer, ForeignKey('scenery_type.id'), nullable=False)
-    type = relationship('SceneryType')
+    function_id = Column(Integer, ForeignKey('function.id'), nullable=False)
+    function = relationship('Function')
     start = Column(Float)
     end = Column(Float)
 
     event_pin_id = Column(Integer, ForeignKey('input_pin.id'), nullable=False)
     event_pin = relationship('InputPin', foreign_keys=[event_pin_id])
-    event_value = Column(Integer, nullable=False)
+    event_value = Column(Integer)
 
     ref_pin_id = Column(Integer, ForeignKey('input_pin.id'), nullable=False)
     ref_pin = relationship('InputPin', foreign_keys=[ref_pin_id])
-    ref_value = Column(Integer, nullable=False)
+    ref_value = Column(Integer)
 
     output_pin_id = Column(Integer, ForeignKey('output_pin.id'), nullable=False)
     output_pin = relationship('OutputPin', foreign_keys=[output_pin_id])
-    output_value = Column(Integer, nullable=False)
+    output_value = Column(Integer)
 
     def __repr__(self):
         return self.name

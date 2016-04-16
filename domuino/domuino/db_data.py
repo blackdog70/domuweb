@@ -1,28 +1,34 @@
-import os
-
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
-
-basedir = os.path.abspath(os.path.dirname(__file__) + '/..')
-engine = create_engine('sqlite:///' + os.path.join(basedir, 'app.db'), convert_unicode=True, echo=False)
-
-connection = engine.connect()
+from db_session import session
+from automation import functions
 
 def init_pin_type():
-    connection.execute('insert or replace into input_type (id, name) values (1, "Button")')
-    connection.execute('insert or replace into input_type (id, name) values (5, "Dimmer")')
-    connection.execute('insert or replace into output_type (id, name) values (1, "Light")')
-    connection.execute('insert or replace into output_type (id, name) values (5, "Light dimmered")')
-    connection.execute('insert or replace into output_type (id, name) values (10, "Socket")')
-    connection.execute('insert or replace into output_type (id, name) values (20, "Balcony")')
+    session.execute("insert or replace into input_type values(:id, :name)" ,{"id": 1, "name": "Button"})
+    session.execute("insert or replace into input_type values(:id, :name)" ,{"id": 5, "name": "Dimmer"})
+    session.execute("insert or replace into output_type values(:id, :name)" ,{"id": 1, "name": "Light"})
+    session.execute("insert or replace into output_type values(:id, :name)" ,{"id": 5, "name": "Light dimmered"})
+    session.execute("insert or replace into output_type values(:id, :name)" ,{"id": 10, "name": "Socket"})
+    session.execute("insert or replace into output_type values(:id, :name)" ,{"id": 20, "name": "Balcony"})
 
-def init_scenery_type():
-    connection.execute('insert or replace into scenery_type (id, name) values (100, "On")')
-    connection.execute('insert or replace into scenery_type (id, name) values (200, "Off")')
-    connection.execute('insert or replace into scenery_type (id, name) values (300, "On until ref")')
 
+def init_room():
+    session.execute("insert or replace into room values(:id, :name)" ,{"id": 100, "name": "Kitchen"})
+    session.execute("insert or replace into room values(:id, :name)" ,{"id": 110, "name": "Living"})
+    session.execute("insert or replace into room values(:id, :name)" ,{"id": 120, "name": "Bathroom"})
+
+def fill_scenery_type():
+    try:
+        session.execute("delete from function")
+        for function in functions.iterkeys():
+            session.execute("insert or replace into function values(:id, :name)", {"id": hash(function),
+                                                                                   "name": function})
+        session.commit()
+    except Exception as e:
+        session.rollback()
+        print e
+
+fill_scenery_type()
 init_pin_type()
-init_scenery_type()
+init_room()
 
-connection.close()
+
+session.close()

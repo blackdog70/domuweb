@@ -2,18 +2,8 @@ import os
 import time
 from threading import Thread, Lock
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
 from communication import Device as Domuino
-
-basedir = os.path.abspath(os.path.dirname(__file__) + '/..')
-engine = create_engine('sqlite:///' + os.path.join(basedir, 'app.db'), convert_unicode=True, echo=False)
-Base = declarative_base()
-Base.metadata.reflect(engine)
-
-Session = sessionmaker(bind=engine)
-session = Session()
+from db_session import session, Base
 
 
 class Network(Thread):
@@ -21,6 +11,7 @@ class Network(Thread):
     def __init__(self):
         super(Network, self).__init__()
         self.outputs = {}
+        self.inputs = {}
         self._devices = {}
         Device = Base.metadata.tables['device']
         for device in session.query(Device).all():
@@ -32,24 +23,32 @@ class Network(Thread):
         try:
             for device in self._devices.itervalues():
                 network_lock.acquire()
-                err, res = device.get_outputs()
+                err, outs = device.get_outputs()
+                err, ins = device.get_inputs()
                 network_lock.release()
                 if not err:
-                    outputs = res.split('|')[1]
+                    outputs = outs.split('|')[1]
+                    inputs = ins.split('|')[1]
                     if outputs != 'null':
                         self.outputs[device.code] = eval(outputs)
+                    if inputs != 'null':
+                        self.inputs[device.code] = eval(inputs)
         except Exception as e:
             print e
 
-    def get_output(self, output_pin):
+    @staticmethod
+    def _get_pin_value(pins, pin_code):
         network_lock.acquire()
-        device, pin = output_pin.split('_')
-        outputs = self.outputs.get(int(device))
+        device, pin_code = pin_code.split('_')
+        pin_values = pins.get(int(device))
         network_lock.release()
-        output = None
-        if outputs:
-            output = outputs[int(pin)]
-        return output
+        return pin_values[int(pin_code)] if pin_values else None
+
+    def get_output(self, pin_code):
+        return self._get_pin_value(self.outputs, pin_code)
+
+    def get_input(self, pin_code):
+        return self._get_pin_value(self.outputs, pin_code)
 
     def pin_toggle(self, output_pin):
         device, pin = output_pin.split('_')

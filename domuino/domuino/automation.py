@@ -10,18 +10,25 @@ functions = {}
 
 def automation(func):
     def wrap(scenery):
+        print "before"
         if scenery.start == scenery.end or scenery.start <= time.time() <= scenery.end:
             if scenery.event_value is None or network.get_input(scenery.event_pin.code) == scenery.event_value:
                 func(scenery)
-        return
-    functions[func.__name__] = func
+        print "after"
+    functions[func.__name__] = wrap
     return wrap
 
 
 @automation
-def toggle(scenery):
-    network.pin_toggle(scenery.output_pin)
-    print "toggle"
+def on(scenery):
+    network.pin_on(scenery.output_pin.code)
+    print "set"
+
+
+@automation
+def off(scenery):
+    network.pin_off(scenery.output_pin.code)
+    print "res"
 
 
 @automation
@@ -36,7 +43,7 @@ def backward(scenery):
 
 def run():
     for scenery in session.query(Scenery).all():
-        functions[scenery.type](scenery)
+        functions[scenery.function.name](scenery)
 
 
 if __name__ == "__main__":

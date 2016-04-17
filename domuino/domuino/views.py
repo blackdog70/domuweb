@@ -2,8 +2,10 @@ from flask import render_template
 from flask.ext.appbuilder.models.sqla.interface import SQLAInterface
 from flask.ext.appbuilder import ModelView
 from wtforms.validators import ValidationError
+from flask_appbuilder.models.sqla.filters import FilterEqual
 
-from models import Room, Device, InputPin, OutputPin, InputType, OutputType, Scenery, Function
+# from models import Room, Device, InputPin, OutputPin, InputType, OutputType, Scenery, Function
+from models import Room, Device, Pin, PinType, PinFunction, Scenery, Function
 from domuino import appbuilder, db
 
 """
@@ -30,34 +32,65 @@ def page_not_found(e):
     return render_template('404.html', base_template=appbuilder.base_template, appbuilder=appbuilder), 404
 
 
-class InputTypeView(ModelView):
-    datamodel = SQLAInterface(InputType)
+# class InputTypeView(ModelView):
+#     datamodel = SQLAInterface(InputType)
+#
+#     base_permissions = ['can_list', 'can_show']
+#     show_columns = list_columns = ['name']
+#
+#
+# class OutputTypeView(ModelView):
+#     datamodel = SQLAInterface(OutputType)
+#
+#     base_permissions = ['can_list', 'can_show']
+#     show_columns = list_columns = ['name']
+
+
+class PinTypeView(ModelView):
+    datamodel = SQLAInterface(PinType)
 
     base_permissions = ['can_list', 'can_show']
     show_columns = list_columns = ['name']
 
 
-class OutputTypeView(ModelView):
-    datamodel = SQLAInterface(OutputType)
+class PinFunctionView(ModelView):
+    datamodel = SQLAInterface(PinFunction)
 
     base_permissions = ['can_list', 'can_show']
     show_columns = list_columns = ['name']
+
+
+class PinView(ModelView):
+    datamodel = SQLAInterface(Pin)
+
+    base_permissions = ['can_list', 'can_show', 'can_edit']
+    list_columns = ['name', 'type', 'function', 'device', 'room', ]
+    show_columns = list_columns
+    edit_columns = ['name', 'function', 'device', 'room', ]
 
 
 class InputPinView(ModelView):
-    datamodel = SQLAInterface(InputPin)
+    datamodel = SQLAInterface(Pin)
 
     base_permissions = ['can_list', 'can_show', 'can_edit']
-    list_columns = ['name', 'type', 'device', 'room', ]
-    add_columns = edit_columns = show_columns = list_columns
+    list_columns = ['name', 'type', 'function', 'device', 'room', ]
+    show_columns = list_columns
+    edit_columns = ['name', 'function', 'device', 'room', ]
+
+    list_title = show_title = edit_title = "Input pins"
+    base_filters = [['type_id', FilterEqual, 0]]
 
 
 class OutputPinView(ModelView):
-    datamodel = SQLAInterface(OutputPin)
+    datamodel = SQLAInterface(Pin)
 
     base_permissions = ['can_list', 'can_show', 'can_edit']
-    list_columns = ['name', 'type', 'device', 'room', ]
-    add_columns = edit_columns = show_columns = list_columns
+    list_columns = ['name', 'type', 'function', 'device', 'room', ]
+    show_columns = list_columns
+    edit_columns = ['name', 'function', 'device', 'room', ]
+
+    list_title = show_title = edit_title = "Output pins"
+    base_filters = [['type_id', FilterEqual, 1]]
 
 
 class RoomView(ModelView):
@@ -95,44 +128,16 @@ class SceneryView(ModelView):
         'name', 'function', 'start', 'end', 'event_pin', 'event_value', 'ref_pin', 'ref_value', 'output_pin', 'output_value',
     ]
     add_columns = edit_columns = show_columns = list_columns
-    form_choices = {
-        'event_value': [('0', '0'), ('1', '1')],
-        'output_value': [('0', '0'), ('1', '1')],
-    }
-    form_args = {
-        'type': {
-            'label': 'Automation type',
-        },
-        'name': {
-            'label': 'Scenery Name',
-        },
-        'start': {
-            'label': 'Start time',
-#            'widget': widgets.TimePickerWidget()
-        },
-        'end': {
-            'label': 'End time',
-#            'widget': widgets.TimePickerWidget()
-        },
-        'event_value': {
-            'label': 'Event value',
-        },
-        'ref_value': {
-            'label': 'Reference value',
-            'validators': [range0255]
-        },
-        'output_value': {
-            'label': 'Output value',
-        },
-    }
+    add_form_query_rel_fields = {'output_pin': [['type_id', FilterEqual, 1]], }
 
 
 db.create_all()
 
-appbuilder.add_view(InputTypeView, "Input Pin types", icon = "fa-envelope", category = "Config")
-appbuilder.add_view(OutputTypeView, "Output Pin types", icon = "fa-envelope", category = "Config")
+appbuilder.add_view(PinTypeView, "Pin types", icon = "fa-envelope", category = "Config")
+appbuilder.add_view(PinView, "Pins", icon = "fa-envelope", category = "Config")
 appbuilder.add_view(InputPinView, "Input Pins", icon = "fa-envelope", category = "Config")
 appbuilder.add_view(OutputPinView, "Output Pins", icon = "fa-envelope", category = "Config")
+appbuilder.add_view(PinFunctionView, "Pin Functions", icon = "fa-envelope", category = "Config")
 appbuilder.add_view(RoomView, "Rooms", icon = "fa-folder-open-o", category = "Config", category_icon = "fa-envelope")
 appbuilder.add_view(DeviceView, "Devices", icon = "fa-envelope", category = "Config")
 appbuilder.add_view(FunctionView, "Functions", icon = "fa-envelope", category = "Config")

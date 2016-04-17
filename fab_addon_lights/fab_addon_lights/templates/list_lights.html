@@ -1,25 +1,35 @@
 {% extends "appbuilder/base.html" %}
 
 {% block content %}
-    {% for light in lights %}
-        <div id="{{ light.name }}">
-            <p>Name: {{ light.name }}</p>
-            <p>Room: {{ light.room }}</p>
-            <p>Value:<a id="{{ light.name }}_value">{{ light.value }}</a></p>
+    <div style="float: left; margin-right: 10em ">
+    {% for input in inputs %}
+        <div id="{{ input.code }}_{{ input.type_id.id }}">
+            <p>Name: {{ input.name }}</p>
+            <p>Room: {{ input.room.name }}</p>
         </div>
     {% endfor %}
+    </div>
+    <div>
+    {% for output in outputs %}
+        <div id="{{ output.code }}">
+            <p>Name: {{ output.name }}</p>
+            <p>Room: {{ output.room.name }}</p>
+            <p>Value:<a id="{{ output.code }}_value">{{ output.value }}</a></p>
+        </div>
+    {% endfor %}
+    </div>
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
     <script>
-        {% for light in lights %}
-            $("#{{ light.name }}").click(function() {
+        {% for input in inputs %}
+            $("#{{ input.code }}_{{ input.type_id.id }}").click(function() {
                 $.post( '/dashboard/set/',
-                        {data: "{{ light.name }}"},
+                        {pin_code:'{{ input.code }}'},
                         function (response, textStatus, jqXHR) {
-                            data = response.data;
+                            data = response.output;
                             for (var i = 0; i < data.length; i++) {
                                 console.log(data[i]);
-                                $("#" + data[i].name + "_value").html(data[i].value)
+                                $("#" + data[i].code + "_value").html(data[i].value)
                             }
                         }
                 );

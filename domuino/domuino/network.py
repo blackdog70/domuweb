@@ -10,8 +10,8 @@ class Network(Thread):
 
     def __init__(self):
         super(Network, self).__init__()
-        self.outputs = {}
-        self.inputs = {}
+        self._outputs = {}
+        self._inputs = {}
         self._devices = {}
         Device = Base.metadata.tables['device']
         for device in session.query(Device).all():
@@ -30,25 +30,37 @@ class Network(Thread):
                     outputs = outs.split('|')[1]
                     inputs = ins.split('|')[1]
                     if outputs != 'null':
-                        self.outputs[device.code] = eval(outputs)
+                        self._outputs[device.code] = eval(outputs)
                     if inputs != 'null':
-                        self.inputs[device.code] = eval(inputs)
+                        self._inputs[device.code] = eval(inputs)
         except Exception as e:
             print e
 
     @staticmethod
     def _get_pin_value(pins, pin_code):
+        device, pin = pin_code.split('_')
         network_lock.acquire()
-        device, pin_code = pin_code.split('_')
         pin_values = pins.get(int(device))
         network_lock.release()
-        return pin_values[int(pin_code)] if pin_values else None
+        return pin_values[int(pin)] if pin_values else None
 
     def get_output(self, pin_code):
-        return self._get_pin_value(self.outputs, pin_code)
+        return self._get_pin_value(self._outputs, pin_code)
 
-    def get_input(self, pin_code):
-        return self._get_pin_value(self.outputs, pin_code)
+    # def get_input(self, pin_code):
+    #     return self._get_pin_value(self._outputs, pin_code)
+
+    def get_inputs(self):
+        network_lock.acquire()
+        inputs = self._inputs.copy()
+        network_lock.release()
+        return inputs
+
+    def get_outputs(self):
+        network_lock.acquire()
+        inputs = self._outputs.copy()
+        network_lock.release()
+        return inputs
 
     def pin(func):
         def wrap(self, pin_code):
@@ -80,5 +92,5 @@ if network:
 
 if __name__ == '__main__':
     while True:
-        print network.outputs.get(10)
+        print network._outputs.get(10)
         time.sleep(0.5)

@@ -3,38 +3,35 @@ import sqlite3
 from flask import request, jsonify
 from flask.ext.appbuilder import BaseView, expose, has_access
 
-from domuino.models import OutputPin
+from domuino.models import Pin
 from domuino.network import network
+from domuino import automation
 
 
 class Dashboard(BaseView):
-    default_view = "lights"
+    default_view = "sceneries"
     template_folder = '/home/sebastiano/PycharmProjects/home/fab_addon_lights/fab_addon_lights/templates'
 
-    def list_lights(self):
-        lights = []
-        for light in self.appbuilder.get_session.query(OutputPin).\
-                                                 filter(OutputPin.type_id == 1 and OutputPin.type_id == 5).all():
-            lights.append({"name": light.name,
-                           "room": str(light.room),
-                           "value": network.get_output(light.code),
-                           "code": light.code})
-        return lights
-
-    @expose('/lights/')
+    @expose('/sceneries/')
     @has_access
-    def lights(self):
-        lights = self.list_lights()
-        return self.render_template('list_lights.html', lights=lights)
+    def sceneries(self):
+        outputs = []
+        inputs = self.appbuilder.get_session.query(Pin).filter(Pin.type_id == 0).all()
+        for output in self.appbuilder.get_session.query(Pin).filter(Pin.type_id == 1).all():
+            output.value = network.get_output(output.code)
+            outputs.append(output)
+        return self.render_template('list_lights.html', inputs=inputs, outputs=outputs)
 
     @expose('/get/', methods=('GET', 'POST'))
     def get(self):
-        lights = self.list_lights()
-        return jsonify({"data": lights})
+        outputs = []
+        for output in self.appbuilder.get_session.query(Pin).filter(Pin.type_id == 1).all():
+            outputs.append({'code': output.code, 'value': network.get_output(output.code)})
+        return jsonify({"output": outputs})
 
+#TODO: Exec sceneries
     @expose('/set/', methods=('GET', 'POST'))
     def set(self):
-        pin_name = request.form.get('data')
-        if pin_name:
-            network.pin_toggle(pin_name)
+        pin_code = request.form['pin_code']
+        automation.run(pin_code, 1)
         return self.get()

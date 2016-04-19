@@ -98,10 +98,12 @@ class Event(Model):
 
     event_pin_id = Column(Integer, ForeignKey('pin.id'), nullable=False)
     event_pin = relationship('Pin', foreign_keys=[event_pin_id])
-    event_value = Column(Integer)
+    event_value = Column(Integer, nullable=False)
 
     start = Column(Float)
     end = Column(Float)
+
+    actions = relationship('Action')
 
 
 class Action(Model):

@@ -2,7 +2,7 @@ import time
 import hashlib
 
 from db_session import session, Base
-from models import Action
+from models import Action, Event
 from network import network
 
 functions = {}
@@ -20,32 +20,19 @@ def _get_pin_value(pin):
     return pin_values[int(pin_id)] if pin_values else None
 
 
-def automation(func):
-    def wrap(action):
-        if action.start == action.end or action.start <= time.time() <= action.end:
-            if action.event_value is None or _get_pin_value(action.event_pin) == action.event_value:
-                func(action)
-    functions[func.__name__] = wrap
-    return wrap
-
-
-@automation
 def on(action):
     network.pin_on(action.output_pin.code)
 
 
-@automation
 def off(action):
     network.pin_off(action.output_pin.code)
 
 
-@automation
 def forward(action):
     print "forward until ref"
 
 
-@automation
-def backward(scenery):
+def backward(action):
     print "backward until ref"
 
 
@@ -57,9 +44,21 @@ def run(pin_code = None, value = None):
     if pin_code:
         device, pin_id = pin_code.split('_')
         _inputs[int(device)][int(pin_id)] = int(value)
-    for action in session.query(Action).all():
-        functions[action.function.name](action)
 
+    pin_served = []
+    for event in session.query(Event).all():
+        if event.start == event.end or event.start <= time.time() <= event.end:
+            if _get_pin_value(event.event_pin) == event.event_value:
+                for action in event.actions:
+                    if action.output_pin not in pin_served:
+                        if action.ref_value is None or _get_pin_value(action.ref_pin) == action.ref_value:
+                            functions[action.function.name](action)
+                            pin_served.append(action.output_pin)
+
+functions['on'] = on
+functions['off'] = off
+functions['forward'] = forward
+functions['backward'] = backward
 
 if __name__ == "__main__":
     run()

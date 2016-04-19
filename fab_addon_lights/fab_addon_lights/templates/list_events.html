@@ -1,15 +1,16 @@
 {% extends "appbuilder/base.html" %}
 
 {% block content %}
-    <div style="float: left; margin-right: 10em ">
-    {% for input in inputs %}
-        <div id="{{ input.code }}_{{ input.type_id.id }}">
-            <p>Name: {{ input.name }}</p>
-            <p>Room: {{ input.room.name }}</p>
+    <div style="float: left; padding-right: 10em">
+    {% for event in events %}
+        <div id="{{ event.event_pin.code }}_{{ event.event_pin.type_id.id }}">
+            <p>Name: {{ event.name }}</p>
+            <p>Type: {{ event.event_pin.function }}</p>
+            <p>Room: {{ event.event_pin.room.name }}</p>
         </div>
     {% endfor %}
     </div>
-    <div>
+    <div style="float: left; ">
     {% for output in outputs %}
         <div id="{{ output.code }}">
             <p>Name: {{ output.name }}</p>
@@ -21,10 +22,10 @@
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
     <script>
-        {% for input in inputs %}
-            $("#{{ input.code }}_{{ input.type_id.id }}").click(function() {
+        {% for event in events %}
+            $("#{{ event.event_pin.code }}_{{ event.event_pin.type_id.id }}").click(function() {
                 $.post( '/dashboard/set/',
-                        {pin_code:'{{ input.code }}'},
+                        {pin_code:'{{ event.event_pin.code }}'},
                         function (response, textStatus, jqXHR) {
                             data = response.output;
                             for (var i = 0; i < data.length; i++) {

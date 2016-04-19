@@ -3,12 +3,6 @@ from automation import functions
 
 
 def init_pin_type():
-    # session.execute("insert or replace into input_type values(:id, :name)" ,{"id": 1, "name": "Button"})
-    # session.execute("insert or replace into input_type values(:id, :name)" ,{"id": 5, "name": "Dimmer"})
-    # session.execute("insert or replace into output_type values(:id, :name)" ,{"id": 1, "name": "Light"})
-    # session.execute("insert or replace into output_type values(:id, :name)" ,{"id": 5, "name": "Light dimmered"})
-    # session.execute("insert or replace into output_type values(:id, :name)" ,{"id": 10, "name": "Socket"})
-    # session.execute("insert or replace into output_type values(:id, :name)" ,{"id": 20, "name": "Balcony"})
     session.execute("insert or replace into pin_type values(:id, :name)" ,{"id": 0, "name": "Input"})
     session.execute("insert or replace into pin_type values(:id, :name)" ,{"id": 1, "name": "Output"})
     session.commit()

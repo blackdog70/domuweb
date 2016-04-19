@@ -71,9 +71,9 @@ def device_after_insert(mapper, connection, target):
     for pin_id in xrange(6):
         pin_code = "%s_%s" % (target.code, pin_id)
         connection.execute('insert into pin (name, code, type_id, function_id, device_id, room_id) '
-                           'values("%s - In", "%s", 0, 100, %s, 0)' % (pin_code, pin_code, target.id))
+                           'values("%s - In", "%s", 0, 100, %s, 100)' % (pin_code, pin_code, target.id))
         connection.execute('insert into pin (name, code, type_id, function_id, device_id, room_id) '
-                           'values("%s - Out", "%s", 1, 200, %s, 0)' % (pin_code, pin_code, target.id))
+                           'values("%s - Out", "%s", 1, 200, %s, 100)' % (pin_code, pin_code, target.id))
 
 
 class Room(Model):

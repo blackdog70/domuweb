@@ -3,24 +3,24 @@ import sqlite3
 from flask import request, jsonify
 from flask.ext.appbuilder import BaseView, expose, has_access
 
-from domuino.models import Pin
+from domuino.models import Pin, Event
 from domuino.network import network
 from domuino import automation
 
 
 class Dashboard(BaseView):
-    default_view = "sceneries"
+    default_view = "events"
     template_folder = '/home/sebastiano/PycharmProjects/home/fab_addon_lights/fab_addon_lights/templates'
 
-    @expose('/sceneries/')
+    @expose('/events/')
     @has_access
-    def sceneries(self):
+    def events(self):
         outputs = []
-        inputs = self.appbuilder.get_session.query(Pin).filter(Pin.type_id == 0).all()
+        events = self.appbuilder.get_session.query(Event).filter(Pin.type_id == 0).all()
         for output in self.appbuilder.get_session.query(Pin).filter(Pin.type_id == 1).all():
             output.value = network.get_output(output.code)
             outputs.append(output)
-        return self.render_template('list_lights.html', inputs=inputs, outputs=outputs)
+        return self.render_template('list_events.html', events=events, outputs=outputs)
 
     @expose('/get/', methods=('GET', 'POST'))
     def get(self):

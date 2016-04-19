@@ -26,7 +26,7 @@ class LightsManager(BaseManager):
         """
             This method is called by AppBuilder when initializing, use it to add you views
         """
-        self.appbuilder.add_view(Dashboard, "lights", category = "Lights")
+        self.appbuilder.add_view(Dashboard, "Automation", category = "Events")
 
     def pre_process(self):
         pass

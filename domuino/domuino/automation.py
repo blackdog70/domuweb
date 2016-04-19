@@ -1,5 +1,5 @@
+import sys
 import time
-import hashlib
 
 from db_session import session, Base
 from models import Action, Event
@@ -20,19 +20,19 @@ def _get_pin_value(pin):
     return pin_values[int(pin_id)] if pin_values else None
 
 
-def on(action):
+def _fn_on(action):
     network.pin_on(action.output_pin.code)
 
 
-def off(action):
+def _fn_off(action):
     network.pin_off(action.output_pin.code)
 
 
-def forward(action):
+def _fn_forward(action):
     print "forward until ref"
 
 
-def backward(action):
+def _fn_backward(action):
     print "backward until ref"
 
 
@@ -55,10 +55,10 @@ def run(pin_code = None, value = None):
                             functions[action.function.name](action)
                             pin_served.append(action.output_pin)
 
-functions['on'] = on
-functions['off'] = off
-functions['forward'] = forward
-functions['backward'] = backward
+for function in dir():
+    if function.startswith('_fn_'):
+        functions[function[4:]] = getattr(sys.modules[__name__], function)
+
 
 if __name__ == "__main__":
     run()

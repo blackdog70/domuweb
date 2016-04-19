@@ -5,7 +5,7 @@ from wtforms.validators import ValidationError
 from flask_appbuilder.models.sqla.filters import FilterEqual
 
 # from models import Room, Device, InputPin, OutputPin, InputType, OutputType, Scenery, Function
-from models import Room, Device, Pin, PinType, PinFunction, Scenery, Function
+from models import Room, Device, Pin, PinType, PinFunction, Action, Function, Event
 from domuino import appbuilder, db
 
 """
@@ -116,19 +116,33 @@ class FunctionView(ModelView):
     show_columns = list_columns = ['name']
 
 
-class SceneryView(ModelView):
-    datamodel = SQLAInterface(Scenery)
+class ActionView(ModelView):
+    datamodel = SQLAInterface(Action)
 
-    @staticmethod
-    def range0255(self, field):
-        if not 0 <= field.data <= 255:
-            raise ValidationError('Value must be between 0 and 255')
+    edit_columns = [
+        'parent', 'sequence', 'name', 'ref_pin', 'ref_value', 'function', 'output_pin', 'output_value',
+    ]
+    add_columns = edit_columns
 
     list_columns = [
-        'name', 'function', 'start', 'end', 'event_pin', 'event_value', 'ref_pin', 'ref_value', 'output_pin', 'output_value',
+        'sequence', 'name', 'ref_pin', 'ref_value', 'function', 'output_pin', 'output_value',
+    ]
+    show_columns = list_columns
+
+    add_form_query_rel_fields = {'output_pin': [['type_id', FilterEqual, 1]], }
+
+    list_title = show_title = edit_title = "Actions"
+
+
+class EventView(ModelView):
+    datamodel = SQLAInterface(Event)
+
+    list_columns = [
+        'name', 'event_pin', 'event_value', 'start', 'end'
     ]
     add_columns = edit_columns = show_columns = list_columns
-    add_form_query_rel_fields = {'output_pin': [['type_id', FilterEqual, 1]], }
+
+    related_views = [ActionView]
 
 
 db.create_all()
@@ -141,4 +155,5 @@ appbuilder.add_view(PinFunctionView, "Pin Functions", icon = "fa-envelope", cate
 appbuilder.add_view(RoomView, "Rooms", icon = "fa-folder-open-o", category = "Config", category_icon = "fa-envelope")
 appbuilder.add_view(DeviceView, "Devices", icon = "fa-envelope", category = "Config")
 appbuilder.add_view(FunctionView, "Functions", icon = "fa-envelope", category = "Config")
-appbuilder.add_view(SceneryView, "Sceneries", icon = "fa-envelope", category = "Config")
+appbuilder.add_view(EventView, "Events", icon ="fa-envelope", category ="Config")
+appbuilder.add_view(ActionView, "Actions", icon ="fa-envelope", category ="Config")

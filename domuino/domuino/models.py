@@ -56,11 +56,9 @@ class Device(Model):
     code = Column(Integer, unique=True)
     input_pins = relationship('Pin',
                               primaryjoin="(Device.id==Pin.device_id) & (Pin.type_id==0)",
-                              # foreign_keys=[input_pin_ids],
                               cascade="all, delete-orphan")
     output_pins = relationship('Pin',
                                primaryjoin="(Device.id==Pin.device_id) & (Pin.type_id==1)",
-                               # foreign_keys=[output_pin_ids],
                                cascade="all, delete-orphan")
 
     def __repr__(self):
@@ -94,27 +92,36 @@ class Function(Model):
         return self.name
 
 
-class Scenery(Model):
+class Event(Model):
     id = Column(Integer, primary_key=True)
-    name = Column(String, index=True, nullable=False)
-    function_id = Column(Integer, ForeignKey('function.id'), nullable=False)
-    function = relationship('Function')
+    name = Column(String, nullable=False)
+
+    event_pin_id = Column(Integer, ForeignKey('pin.id'), nullable=False)
+    event_pin = relationship('Pin', foreign_keys=[event_pin_id])
+    event_value = Column(Integer)
+
     start = Column(Float)
     end = Column(Float)
-    event_pin_id = Column(Integer, ForeignKey('pin.id'), nullable=False)
-    event_pin = relationship('Pin',
-                             # primaryjoin="and_(Pin.id==Scenery.event_pin_id, Pin.type_id==0)",
-                             foreign_keys=[event_pin_id])
-    event_value = Column(Integer)
+
+
+class Action(Model):
+    id = Column(Integer, primary_key=True)
+
+    parent_id = Column(Integer, ForeignKey('event.id'), nullable=False)
+    parent = relationship('Event')
+
+    sequence = Column(Integer)
+    name = Column(String)
+
     ref_pin_id = Column(Integer, ForeignKey('pin.id'), nullable=False)
-    ref_pin = relationship('Pin',
-                           # primaryjoin="and_(Pin.id==Scenery.ref_pin_id, Pin.type_id==0)",
-                           foreign_keys=[ref_pin_id])
+    ref_pin = relationship('Pin', foreign_keys=[ref_pin_id])
     ref_value = Column(Integer)
+
+    function_id = Column(Integer, ForeignKey('function.id'), nullable=False)
+    function = relationship('Function')
+
     output_pin_id = Column(Integer, ForeignKey('pin.id'), nullable=False)
-    output_pin = relationship('Pin',
-                              # primaryjoin="and_(Pin.id==Scenery.output_pin_id, Pin.type_id==1)",
-                              foreign_keys=[output_pin_id])
+    output_pin = relationship('Pin', foreign_keys=[output_pin_id])
     output_value = Column(Integer)
 
     def __repr__(self):

@@ -63,22 +63,33 @@ class Network(Thread):
         return inputs
 
     def pin(func):
-        def wrap(self, pin_code):
+        def wrap(self, pin_code, value = None):
             device, pin = pin_code.split('_')
             device = self._devices.get(int(device))
             if device:
                 network_lock.acquire()
-                func(self, device, int(pin))
+                if value is None:
+                    func(self, device, int(pin))
+                else:
+                    func(self, device, int(pin), value)
                 network_lock.release()
         return wrap
 
     @pin
+    def pin_config_input(self, device, pin, value):
+        print device.conf_input(pin, value)
+
+    @pin
+    def pin_config_output(self, device, pin, value):
+        print device.conf_output(pin, value)
+
+    @pin
     def pin_on(self, device, pin):
-        device.on(pin)
+        print device.on(pin)
 
     @pin
     def pin_off(self, device, pin):
-        device.off(pin)
+        print device.off(pin)
 
     def run(self):
         while True:
@@ -86,7 +97,7 @@ class Network(Thread):
             time.sleep(0.01)
 
 network_lock = Lock()
-network = Network()
+network = None #Network()
 if network:
     network.start()
 

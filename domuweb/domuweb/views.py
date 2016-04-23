@@ -2,11 +2,15 @@ from flask import render_template
 from flask.ext.appbuilder.models.sqla.interface import SQLAInterface
 from flask.ext.appbuilder import ModelView
 from wtforms.validators import ValidationError
+from wtforms.ext.sqlalchemy.fields import QuerySelectField
+
 from flask_appbuilder.models.sqla.filters import FilterEqual
+from flask_appbuilder.fieldwidgets import Select2Widget
 
 # from models import Room, Device, InputPin, OutputPin, InputType, OutputType, Scenery, Function
-from models import Room, Device, Pin, PinType, PinFunction, Action, Function, Event
-from domuino import appbuilder, db
+from models import Room, Device, Pin, IoMode, PinFunction, Action, Function, Event
+from domuweb import appbuilder, db
+from network import network
 
 """
     Create your Views::
@@ -46,8 +50,8 @@ def page_not_found(e):
 #     show_columns = list_columns = ['name']
 
 
-class PinTypeView(ModelView):
-    datamodel = SQLAInterface(PinType)
+class IoModeView(ModelView):
+    datamodel = SQLAInterface(IoMode)
 
     base_permissions = ['can_list', 'can_show']
     show_columns = list_columns = ['name']
@@ -57,7 +61,15 @@ class PinFunctionView(ModelView):
     datamodel = SQLAInterface(PinFunction)
 
     base_permissions = ['can_list', 'can_show']
-    show_columns = list_columns = ['name']
+    show_columns = list_columns = ['name', 'type']
+
+
+def input_function_query():
+    return db.session.query(PinFunction).filter(PinFunction.type_id == 0)
+
+
+def output_function_query():
+    return db.session.query(PinFunction).filter(PinFunction.type_id == 1)
 
 
 class PinView(ModelView):
@@ -80,6 +92,13 @@ class InputPinView(ModelView):
     list_title = show_title = edit_title = "Input pins"
     base_filters = [['type_id', FilterEqual, 0]]
 
+    edit_form_extra_fields = {'function':  QuerySelectField('function',
+                                                            query_factory=input_function_query,
+                                                            widget=Select2Widget(extra_classes=""))}
+
+    def post_update(self, item):
+        network.pin_config_input(item.code, item.function.id)
+
 
 class OutputPinView(ModelView):
     datamodel = SQLAInterface(Pin)
@@ -91,6 +110,13 @@ class OutputPinView(ModelView):
 
     list_title = show_title = edit_title = "Output pins"
     base_filters = [['type_id', FilterEqual, 1]]
+
+    edit_form_extra_fields = {'function':  QuerySelectField('function',
+                                                            query_factory=output_function_query,
+                                                            widget=Select2Widget(extra_classes=""))}
+
+    def post_update(self, item):
+        network.pin_config_output(item.code, item.function.id)
 
 
 class RoomView(ModelView):
@@ -147,7 +173,7 @@ class EventView(ModelView):
 
 db.create_all()
 
-appbuilder.add_view(PinTypeView, "Pin types", icon = "fa-envelope", category = "Config")
+appbuilder.add_view(IoModeView, "Pin types", icon ="fa-envelope", category ="Config")
 appbuilder.add_view(PinView, "Pins", icon = "fa-envelope", category = "Config")
 appbuilder.add_view(InputPinView, "Input Pins", icon = "fa-envelope", category = "Config")
 appbuilder.add_view(OutputPinView, "Output Pins", icon = "fa-envelope", category = "Config")

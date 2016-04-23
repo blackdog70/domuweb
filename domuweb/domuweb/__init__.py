@@ -35,5 +35,5 @@ def set_sqlite_pragma(dbapi_connection, connection_record):
     cursor.close()
 """    
 
-from domuino import views
+from domuweb import views
 

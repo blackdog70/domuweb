@@ -103,6 +103,12 @@ class Device(object):
     def off(self, out):
         return self._command("SETP|%s|0." % out)
 
+    def conf_input(self, pin, value):
+        return self._command("CONFI|%s|%s." % (pin, value))
+
+    def conf_output(self, pin, value):
+        return self._command("CONFO|%s|%s." % (pin, value))
+
     def scenery_on(self, id):
         return self._command("SCON|%s." % id)
 

@@ -3,9 +3,9 @@ import sqlite3
 from flask import request, jsonify
 from flask.ext.appbuilder import BaseView, expose, has_access
 
-from domuino.models import Pin, Event
-from domuino.network import network
-from domuino import automation
+from domuweb.models import Pin, Event
+from domuweb.network import network
+from domuweb import automation
 
 
 class Dashboard(BaseView):

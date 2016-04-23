@@ -15,7 +15,7 @@ AuditMixin will add automatic timestamp of created and modified by who
 """
 
 
-class PinType(Model):
+class IoMode(Model):
     id = Column(Integer, primary_key=True)
     name = Column(String, unique=True)
 
@@ -25,6 +25,8 @@ class PinType(Model):
 
 class PinFunction(Model):
     id = Column(Integer, primary_key=True)
+    type_id = Column(Integer, ForeignKey('io_mode.id'), nullable=False)
+    type = relationship('IoMode', foreign_keys=[type_id])
     name = Column(String, unique=True)
 
     def __repr__(self):
@@ -37,8 +39,8 @@ class Pin(Model):
     id = Column(Integer, primary_key=True)
     code = Column(String, nullable=False)
     name = Column(String, nullable=False)
-    type_id = Column(Integer, ForeignKey('pin_type.id'), nullable=False)
-    type = relationship('PinType', foreign_keys=[type_id])
+    type_id = Column(Integer, ForeignKey('io_mode.id'), nullable=False)
+    type = relationship('IoMode', foreign_keys=[type_id])
     function_id = Column(Integer, ForeignKey('pin_function.id'), nullable=False)
     function = relationship('PinFunction', foreign_keys=[function_id])
     device_id = Column(Integer, ForeignKey('device.id'), nullable=False)

@@ -62,7 +62,7 @@ class Device(object):
         # self._485.write(cipher)
         # self._485.write(IV + '\n')
         # self._485.write(str(self._crc.calculate(cipher)) + '\n')
-        data = str(self._crc.calculate(str(command[:-1]))) + '|' + command
+        data = str(self._crc.calculate(str(command))) + '|' + command + '#'
         self._485.write(str(data))
         return self._getACK()
 
@@ -92,80 +92,86 @@ class Device(object):
         pass
 
     def emon_current(self, pin, value):
-        return self._command("EMONC|%s|%s." % (pin, value*100))
+        return self._command("EMONC|%s|%s" % (pin, value*100))
 
     def toggle(self, out):
-        return self._command("TOGGLE|%s." % out)
+        return self._command("TOGGLE|%s" % out)
 
     def on(self, out):
-        return self._command("SETP|%s|1." % out)
+        return self._command("SETP|%s|1" % out)
 
     def off(self, out):
-        return self._command("SETP|%s|0." % out)
+        return self._command("SETP|%s|0" % out)
 
     def conf_input(self, pin, value):
-        return self._command("CONFI|%s|%s." % (pin, value))
+        return self._command("CONFI|%s|%s" % (pin, value))
 
     def conf_output(self, pin, value):
-        return self._command("CONFO|%s|%s." % (pin, value))
+        return self._command("CONFO|%s|%s" % (pin, value))
 
     def scenery_on(self, id):
-        return self._command("SCON|%s." % id)
+        return self._command("SCON|%s" % id)
 
     def scenery_off(self, id):
-        return self._command("SCOFF|%s." % id)
+        return self._command("SCOFF|%s" % id)
 
     def set_value(self, out, value):
-        return self._command("SETV|%s|%s." % (out, value))
+        return self._command("SETV|%s|%s" % (out, value))
 
     def test(self):
-        return self._command("TEST.")
+        return self._command("TEST")
 
     def get_inputs(self):
-        return self._command("GETP|I.")
+        return self._command("GETP|I")
 
     def get_outputs(self):
-        return self._command("GET|O.")
+        return self._command("GETP|O")
 
-    def get_inputs_value(self):
-        return self._command("GETV|I.")
+    # def get_inputs_value(self):
+    #     return self._command("GETV|I.")
+    #
+    # def get_outputs_value(self):
+    #     return self._command("GETV|O.")
 
-    def get_outputs_value(self):
-        return self._command("GETV|O.")
+    def get_inputs_counter(self, pin):
+        return self._command("GETC|I|%s" % pin)
+
+    def get_outputs_counter(self, pin):
+        return self._command("GETC|O|%s" % pin)
 
     def get_power(self):
-        return self._command("POWER.")
+        return self._command("POWER")
 
     def set_time(self):
-        return self._command("TIME|%s." % int(time.time()))
+        return self._command("TIME|%s" % int(time.time()))
 
     def freemem(self):
-        return self._command("FREEMEM.")
+        return self._command("FREEMEM")
 
 
 if __name__ == '__main__':
     def test_commands():
         print d.freemem()
-        print d.scenery_on(0)
-        print d.scenery_on(1)
-        print d.scenery_off(0)
-        print d.scenery_off(1)
         print d.set_time()
         print d.get_inputs()
         print d.get_outputs()
-        print d.get_inputs_value()
-        print d.get_outputs_value()
+        # print d.get_inputs_value()
+        # print d.get_outputs_value()
         print d.on(0)
+        print d.get_outputs_counter(0)
         print d.on(1)
+        print d.get_outputs_counter(1)
         print d.off(0)
         print d.toggle(0)
+        print d.get_outputs_counter(0)
         print d.toggle(0)
+        print d.get_outputs_counter(0)
         print d.set_value(0, 200)
         print d.freemem()
         print d.get_inputs()
         print d.get_outputs()
-        print d.get_inputs_value()
-        print d.get_outputs_value()
+        # print d.get_inputs_value()
+        # print d.get_outputs_value()
         print d.off(0)
         print d.off(1)
         print d.emon_current(0, 5)
@@ -186,4 +192,4 @@ if __name__ == '__main__':
                 start = time.time()
 
     with Device('/dev/ttyUSB0', 1, 115200) as d:
-        test_speed()
+        test_commands()

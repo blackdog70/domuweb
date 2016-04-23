@@ -75,6 +75,7 @@ class Network(Thread):
                 network_lock.release()
         return wrap
 
+    #TODO: Send config for all ins and outs on network start
     @pin
     def pin_config_input(self, device, pin, value):
         print device.conf_input(pin, value)
